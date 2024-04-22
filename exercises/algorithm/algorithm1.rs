@@ -2,19 +2,18 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
 use std::vec::*;
 
 #[derive(Debug)]
-struct Node<T> {
+struct Node<T: std::cmp::PartialOrd> {
     val: T,
     next: Option<NonNull<Node<T>>>,
 }
 
-impl<T> Node<T> {
+impl<T: std::cmp::PartialOrd> Node<T> {
     fn new(t: T) -> Node<T> {
         Node {
             val: t,
@@ -23,19 +22,19 @@ impl<T> Node<T> {
     }
 }
 #[derive(Debug)]
-struct LinkedList<T> {
+struct LinkedList<T: std::cmp::PartialOrd> {
     length: u32,
     start: Option<NonNull<Node<T>>>,
     end: Option<NonNull<Node<T>>>,
 }
 
-impl<T> Default for LinkedList<T> {
+impl<T: std::cmp::PartialOrd> Default for LinkedList<T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T> LinkedList<T> {
+impl<T: std::cmp::PartialOrd> LinkedList<T> {
     pub fn new() -> Self {
         Self {
             length: 0,
@@ -60,6 +59,10 @@ impl<T> LinkedList<T> {
         self.get_ith_node(self.start, index)
     }
 
+    pub fn len(&mut self) -> i32 {
+        self.length.try_into().unwrap()
+    }
+
     fn get_ith_node(&mut self, node: Option<NonNull<Node<T>>>, index: i32) -> Option<&T> {
         match node {
             None => None,
@@ -69,18 +72,42 @@ impl<T> LinkedList<T> {
             },
         }
     }
-	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
+	pub fn merge(mut list_a:LinkedList<T>,mut list_b:LinkedList<T>) -> Self
 	{
-		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
+        unsafe {
+            let mut merged_list = LinkedList::new();
+        let mut l1 = list_a.start;
+        let mut l2 = list_b.start;
+
+        while l1.is_some() && l2.is_some() {
+            if l1.unwrap().as_ref().val < l2.unwrap().as_ref().val {
+                let mut p = *Box::from_raw(l1.unwrap().as_ptr());
+                l1 = p.next.take();
+                merged_list.add(p.val);
+            } else {
+                let mut p = *Box::from_raw(l2.unwrap().as_ptr());
+                l2 = p.next.take();
+                merged_list.add(p.val);
+            }
         }
+        if l1.is_some() {
+            match merged_list.end {
+                Some(mut n) => n.as_mut().next = l1,
+                None => merged_list.end = l1,
+            };
+        } else {
+            match merged_list.end {
+                Some(mut n) => n.as_mut().next = l2,
+                None => merged_list.end = l2,
+            }
+        }
+        merged_list
+        }
+       
 	}
 }
 
-impl<T> Display for LinkedList<T>
+impl<T: std::cmp::PartialOrd> Display for LinkedList<T>
 where
     T: Display,
 {
@@ -92,7 +119,7 @@ where
     }
 }
 
-impl<T> Display for Node<T>
+impl<T: std::cmp::PartialOrd> Display for Node<T>
 where
     T: Display,
 {
