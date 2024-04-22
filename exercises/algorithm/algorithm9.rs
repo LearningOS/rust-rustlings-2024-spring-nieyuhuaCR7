@@ -2,7 +2,6 @@
 	heap
 	This question requires you to implement a binary heap function
 */
-// I AM NOT DONE
 
 use std::cmp::Ord;
 use std::default::Default;
@@ -38,6 +37,39 @@ where
 
     pub fn add(&mut self, value: T) {
         //TODO
+        self.count += 1;
+        let index = self.count;
+        self.items.push(value);
+        self.change(index);
+    }
+
+    fn down(&mut self, mut index: usize) {
+        while self.children_present(index) {
+            let smallest_child_idx = self.smallest_child_idx(index);
+            if (self.comparator)(&self.items[smallest_child_idx], &self.items[index]) {
+                self.items.swap(smallest_child_idx, index);
+                index = smallest_child_idx;
+            } else {
+                      break;
+            }
+        }
+    }
+
+    fn change(&mut self, mut index: usize) {
+        let mut parent_idx = self.parent_idx(index);
+        while index > 1 && (self.comparator)(&self.items[index], &self.items[parent_idx]) {
+            self.items.swap(index, parent_idx);
+            index = parent_idx;
+            parent_idx = self.parent_idx(index);
+        }
+    }
+
+    pub fn pop(&mut self) -> Option<T> {
+        self.items.swap(1, self.count);
+        self.count -= 1;
+        let ret = self.items.pop();
+        self.down(1);
+        ret
     }
 
     fn parent_idx(&self, idx: usize) -> usize {
@@ -58,7 +90,16 @@ where
 
     fn smallest_child_idx(&self, idx: usize) -> usize {
         //TODO
-		0
+		let left_idx = self.left_child_idx(idx);
+        let right_idx = self.right_child_idx(idx);
+
+        if right_idx > self.count
+            || (self.comparator)(&self.items[left_idx], &self.items[right_idx])
+        {
+            left_idx
+        } else {
+            right_idx
+        }
     }
 }
 
@@ -85,7 +126,11 @@ where
 
     fn next(&mut self) -> Option<T> {
         //TODO
-		None
+		if self.is_empty() {
+            None
+        } else {
+            self.pop()
+        }
     }
 }
 
